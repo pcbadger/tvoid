@@ -74,6 +74,8 @@ def getTitle():
     title = (title.replace("\'S", "\'s"))
     title = (title.replace("\'T", "\'t"))
     title = (title.replace("\'Ll", "\'ll"))
+    title = (title.replace("\'M", "\'m"))
+    title = (title.replace("\'N", "\'n"))
     return title
 
 def getWhoTitle():

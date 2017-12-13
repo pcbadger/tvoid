@@ -7,7 +7,8 @@ TITLE_PREFIX=OUTPUT/title_prefix.txt
 TITLE_SUFFIX=OUTPUT/title_suffix.txt
 echo "clearing old files"
 rm -rf  ${TMP} ${OUTPUT} ${SYNOPSIS} ${TITLE} ${TITLE_PREFIX} ${TITLE_SUFFIX}
-cat INPUT/* | sort | uniq >> ${TMP}
+iconv -c -f UTF-8 -t US-ASCII//TRANSLIT INPUT/* | sort | uniq >> ${TMP}
+#iconv -c -f UTF-8 -t US-ASCII//TRANSLIT ${TMP} >> 
 
 echo "tidying big file"
 # Removing stuff that isn't a title or synops
@@ -26,9 +27,9 @@ gsed -i 's/Stardate- Unknown/Stardate: Unknown/g' ${TMP}
 gsed -i -E 's/(“|”|‘|’|")/ /g' ${TMP}
 gsed -i -E "s/(\ \'|\'\ )/ /g" ${TMP}
 
-gsed -i "s/â€™/\'/g" ${TMP}
-gsed -i "s/â€¦/\./g" ${TMP}
-gsed -i "s/…/\./g" ${TMP}
+# gsed -i "s/â€™/\'/g" ${TMP}
+# gsed -i "s/â€¦/\./g" ${TMP}
+# gsed -i "s/…/\./g" ${TMP}
 # Removing stray .
 gsed -i "s/a\.k\.a\./A.K.A./g" ${TMP}
 gsed -i 's/Mrs\./Mrs/g' ${TMP}
@@ -90,21 +91,22 @@ done < ${OUTPUT}
 echo "splitting up titles"
 while read TITLES ; do
   WORD_COUNT=`echo "${TITLES}" | wc -w`
-  #if [[ ${WORD_COUNT} == 1 ]] && [[ ${TITLES} != *[!\ ]* ]]; then
-  if [[ ${WORD_COUNT} == 1 ]] && [[ ${TITLES} =~ *[A-Za-z0-9]* ]]; then
-    echo ${TITLES} >> ${TITLE_PREFIX}
-  else
-    let "MID = ${WORD_COUNT} / 2"
-    MID=`echo ${MID} | awk '{print int($1+0.5)}'`
-  if [[ ${MID} == 0 ]]; then
-   	MID=1
-   fi
-    PREFIX=`echo "${TITLES}" | cut -d " " -f -${MID}`
-    SUFFIX=`echo "${TITLES}" | cut -d " " -f $((${MID}+1))-`
-    echo ${PREFIX} >> ${TITLE_PREFIX}
-    if [[ ${PREFIX} != ${SUFFIX} ]]; then
-      if [[ ! -z ${SUFFIX} ]]; then
-        echo ${SUFFIX} >> ${TITLE_SUFFIX}
+  if [[ ${TITLES} =~ [A-Za-z] ]]; then
+    if [[ ${WORD_COUNT} =~ "1" ]]; then
+      echo ${TITLES} >> ${TITLE_PREFIX}
+    else
+      let "MID = ${WORD_COUNT} / 2"
+      MID=`echo ${MID} | awk '{print int($1+0.5)}'`
+      if [[ ${MID} == 0 ]]; then
+     	  MID=1
+      fi
+      PREFIX=`echo "${TITLES}" | cut -d " " -f -${MID}`
+      SUFFIX=`echo "${TITLES}" | cut -d " " -f $((${MID}+1))-`
+      echo ${PREFIX} >> ${TITLE_PREFIX}
+      if [[ ${PREFIX} != ${SUFFIX} ]]; then
+        if [[ ! -z ${SUFFIX} ]]; then
+          echo ${SUFFIX} >> ${TITLE_SUFFIX}
+        fi
       fi
     fi
   fi
